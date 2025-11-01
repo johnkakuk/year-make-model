@@ -9,11 +9,12 @@ const yearDropdown  = document.querySelector('.vehicles-year select');
 const makeDropdown  = document.querySelector('.vehicles-make select');
 const modelDropdown = document.querySelector('.vehicles-model select');
 const vehicleList = document.querySelector('.vehicle-display');
+let pagination;
 
 // Pagination variables
 let returnedCars;
-let activePage = 0;
-let totalPages = 0;
+let activePage;
+let totalPages;
 
 // Shorthand for inserting HTML
 function print(output, tag, html, ...classes) {
@@ -23,17 +24,144 @@ function print(output, tag, html, ...classes) {
     output.appendChild(content);
 }
 
-// Handle pagination
+// Handle pagination calculation
 function handlePagination(e) {
-    if(e.target.classList.contains("page") && !e.target.classList.contains("disabled")) {
-        console.log(`Turn to page ${e.target.innerHTML}`);
+    if (e.target.classList.contains("page") && !e.target.classList.contains("disabled")) {
+        activePage = Number(e.target.innerHTML) - 1; // convert 1-based label to 0-based index
+    } else if (e.target.classList.contains("next") && !e.target.classList.contains("disabled")) {
+        activePage++;
+    } else if (e.target.classList.contains("prev") && !e.target.classList.contains("disabled")) {
+        activePage--;
+    } else {
+        return;
     }
-    if(e.target.classList.contains("next") && !e.target.classList.contains("disabled")) {
-        console.log("Clicked next");
+
+    reprintCars();
+}
+
+// Print pagination
+function reprintCars() {
+    // Get the X set of cars
+    let carsPrinted = 0;
+
+    // Reprint w/o nothing here indicator
+    vehicleList.innerHTML = "<h2>Available Vehicles</h2>"
+
+    // Print first 8 cars
+    returnedCars.slice(activePage * 8, activePage * 8 + 8).forEach(car => {
+        const html = `
+        <div class="vehicle-image"></div>
+        <div class="vehicle-loop-details">
+            <h3>${car.year} ${car.Manufacturer} ${car.model} – <span class="price">$${car.price.toLocaleString()}</span></h3>
+            <p>${car.transmission} Transmission | ${car.mileage.toLocaleString()} miles | ${car.mpg} MPG</p>
+        </div>`;
+        print(vehicleList, "div", html, "vehicle-loop");
+        carsPrinted++;
+    });
+
+    // Print additional blank divs to minimize CLS
+    while(carsPrinted < 8) {
+        const html = `
+        <div class="vehicle-image"></div>
+        <div class="vehicle-loop-details">
+            <h3>Hidden Div</h3>
+            <p>Hidden Div<br>Hidden Div</p>
+        </div>`;
+        print(vehicleList, "div", html, "vehicle-loop-ghost");
+        carsPrinted++;
     }
-    if(e.target.classList.contains("prev") && !e.target.classList.contains("disabled")) {
-        console.log("Clicked prev");
+
+    // REPRINT PAGINATION 
+    // Print empty pagination element
+    print(vehicleList, "ul", null, "pagination");
+
+    // Define pagination variable
+    pagination = document.querySelector('.vehicle-display .pagination');
+
+    // START AI
+    // Prev button
+    if (activePage === 0) {
+        print(pagination, "li", "&lt;", "prev", "disabled");
+    } else {
+        print(pagination, "li", "&lt;", "prev");
     }
+
+    const visibleCount = 9; // always show 9 items in the number strip
+
+    if (totalPages <= visibleCount) {
+        // Simple case: show all pages
+        for (let i = 1; i <= totalPages; i++) {
+            if (i - 1 === activePage) {
+                print(pagination, "li", i, "page", "disabled");
+            } else {
+                print(pagination, "li", i, "page");
+            }
+        }
+    } else {
+        const windowSize = 5;
+        const firstLabel = 1;
+        const lastLabel = totalPages;
+
+        // Always print page 1
+        if (activePage === 0) {
+            print(pagination, "li", firstLabel, "page", "disabled");
+        } else {
+            print(pagination, "li", firstLabel, "page");
+        }
+
+        // Determine centered window around active page (labels are 1-based)
+        let start = (activePage + 1) - Math.floor(windowSize / 2);
+        let end = (activePage + 1) + Math.floor(windowSize / 2);
+
+        // Clamp to [2, lastLabel - 1]
+        if (start < 2) {
+            start = 2;
+            end = start + windowSize - 1; // fill to window size
+        }
+        if (end > lastLabel - 1) {
+            end = lastLabel - 1;
+            start = end - windowSize + 1;
+        }
+
+        // Left ellipsis if we cut off pages after 1
+        if (start > 2) {
+            print(pagination, "li", "…", "disabled");
+        }
+
+        // Middle window
+        for (let i = start; i <= end; i++) {
+            if (i - 1 === activePage) {
+                print(pagination, "li", i, "page", "disabled");
+            } else {
+                print(pagination, "li", i, "page");
+            }
+        }
+
+        // Right ellipsis if we cut off pages before last
+        if (end < lastLabel - 1) {
+            print(pagination, "li", "…", "disabled");
+        }
+
+        // Always print last page
+        if (lastLabel - 1 === activePage) {
+            print(pagination, "li", lastLabel, "page", "disabled");
+        } else {
+            print(pagination, "li", lastLabel, "page");
+        }
+    }
+
+    if (activePage === totalPages - 1) {
+        print(pagination, "li", "&gt;", "next", "disabled");
+    } else {
+        print(pagination, "li", "&gt;", "next");
+    }
+
+    // END AI
+
+    // Add event listeners to numbers
+    document.querySelectorAll('.vehicle-display .pagination li').forEach(button => {
+        button.addEventListener('click', handlePagination);
+    });
 }
 
 // Handle select change event
@@ -129,59 +257,9 @@ function handleSelect(e) {
 
         if (returnedCars.length > 8) {
             // Do pagination if 8 or more cars
+            activePage = 0; // zero-based index for current page
             totalPages = Math.ceil(returnedCars.length / 8);
-
-            console.warn(`${returnedCars.length} cars found`);
-            console.warn(`${totalPages} pages`);
-
-            // Reprint w/o nothing here indicator
-            vehicleList.innerHTML = "<h2>Available Vehicles</h2>"
-
-            // Print first 8 cars
-            returnedCars.slice(0, 8).forEach(car => {
-                const html = `
-                <div class="vehicle-image"></div>
-                <div class="vehicle-loop-details">
-                    <h3>${car.year} ${car.Manufacturer} ${car.model} – <span class="price">$${car.price.toLocaleString()}</span></h3>
-                    <p>${car.transmission} Transmission | ${car.mileage.toLocaleString()} miles | ${car.mpg} MPG</p>
-                </div>`;
-                print(vehicleList, "div", html, "vehicle-loop");
-            });
-
-            // Print empty pagination element
-            print(vehicleList, "ul", null, "pagination");
-
-            // INITIAL PAGINATION PRINT
-            // Print prev button
-            print(document.querySelector('.vehicle-display .pagination'), "li", "<", "prev", "disabled");
-
-            // Print all numbers if 8 or fewer pages
-            if (totalPages <= 8) {
-                for(let i = 0; i < 8; i++) {
-                    print(document.querySelector('.vehicle-display .pagination'), "li", i);
-                }
-            }
-
-            if (totalPages > 8) {
-                
-                // Print pages 1-6
-                for(let i = 0; i < 6; i++) {
-                    print(document.querySelector('.vehicle-display .pagination'), "li", i + 1, "page");
-                }
-                // Print ellipsis
-                print(document.querySelector('.vehicle-display .pagination'), "li", "…", "disabled");
-                
-                // Print last page
-                print(document.querySelector('.vehicle-display .pagination'), "li", totalPages, "page");
-            }
-
-            // Print next button
-            print(document.querySelector('.vehicle-display .pagination'), "li", ">", "next");
-
-            // Add event listeners to numbers
-            document.querySelectorAll('.vehicle-display .pagination li').forEach(button => {
-                button.addEventListener('click', handlePagination);
-            });
+            reprintCars();
         }
     }
 }
