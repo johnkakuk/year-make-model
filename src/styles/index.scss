@@ -133,6 +133,26 @@ h3 {
         width: 100%;
         color: #fff;
     }
+
+    > .pagination {
+        list-style: none;
+        padding-inline-start: 0;
+        display: flex;
+        flex-flow: row nowrap;
+        width: 100%;
+        justify-content: center;
+        gap: 10px;
+        color: #fff;
+
+        > .page, .prev, .next {
+            cursor: pointer;
+        }
+
+        > .disabled {
+            opacity: 0.3;
+            cursor: default;
+        }
+    }
 }
 
 .vehicle-loop {

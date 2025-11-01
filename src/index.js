@@ -10,12 +10,30 @@ const makeDropdown  = document.querySelector('.vehicles-make select');
 const modelDropdown = document.querySelector('.vehicles-model select');
 const vehicleList = document.querySelector('.vehicle-display');
 
+// Pagination variables
+let returnedCars;
+let activePage = 0;
+let totalPages = 0;
+
 // Shorthand for inserting HTML
-function print(output, tag, html, classes) {
+function print(output, tag, html, ...classes) {
     const content = document.createElement(tag);
-    if(classes) content.classList.add(classes);
+    if(classes.length) content.classList.add(...classes);
     content.innerHTML = html;
     output.appendChild(content);
+}
+
+// Handle pagination
+function handlePagination(e) {
+    if(e.target.classList.contains("page") && !e.target.classList.contains("disabled")) {
+        console.log(`Turn to page ${e.target.innerHTML}`);
+    }
+    if(e.target.classList.contains("next") && !e.target.classList.contains("disabled")) {
+        console.log("Clicked next");
+    }
+    if(e.target.classList.contains("prev") && !e.target.classList.contains("disabled")) {
+        console.log("Clicked prev");
+    }
 }
 
 // Handle select change event
@@ -50,6 +68,7 @@ function handleSelect(e) {
             // Enable next form
             makeDropdown.disabled = false;
             makeDropdown.parentElement.classList.remove("dropdown-disabled");
+            makeDropdown.selectedIndex = 0;
         }
     }
     if(e.target == makeDropdown) {
@@ -67,7 +86,7 @@ function handleSelect(e) {
         const models = [...new Set(cars.filter((car) => (car.year == yearDropdown.value && car.Manufacturer == makeDropdown.value)).map(car => car.model))].sort((a, b) => a.localeCompare(b));
 
         // Check for positive results
-        if(models.length > 1) {
+        if(models.length > 0) {
             // Populate next form
             models.forEach(model => {
                 print(modelDropdown, "option", model);
@@ -88,9 +107,12 @@ function handleSelect(e) {
         // No map since we want all values (Ah! It IS an inventory list)
         // No Set since we WANT dupes this time
         // No sort for now. Maybe add sorting for price H-L and L-H later?
-        const returnedCars = cars.filter((car) => (car.year == yearDropdown.value && car.Manufacturer == makeDropdown.value && car.model == modelDropdown.value));
+        returnedCars = cars.filter((car) => (car.year == yearDropdown.value && car.Manufacturer == makeDropdown.value && car.model == modelDropdown.value));
         
-        if(returnedCars.length > 0) {
+        if(!returnedCars.length > 0) return;
+
+        if (returnedCars.length <= 8){
+            // Just print if 8 or fewer cars
             // Reprint w/o nothing here indicator
             vehicleList.innerHTML = "<h2>Available Vehicles</h2>"
 
@@ -102,6 +124,63 @@ function handleSelect(e) {
                     <p>${car.transmission} Transmission | ${car.mileage.toLocaleString()} miles | ${car.mpg} MPG</p>
                 </div>`;
                 print(vehicleList, "div", html, "vehicle-loop");
+            });
+        }
+
+        if (returnedCars.length > 8) {
+            // Do pagination if 8 or more cars
+            totalPages = Math.ceil(returnedCars.length / 8);
+
+            console.warn(`${returnedCars.length} cars found`);
+            console.warn(`${totalPages} pages`);
+
+            // Reprint w/o nothing here indicator
+            vehicleList.innerHTML = "<h2>Available Vehicles</h2>"
+
+            // Print first 8 cars
+            returnedCars.slice(0, 8).forEach(car => {
+                const html = `
+                <div class="vehicle-image"></div>
+                <div class="vehicle-loop-details">
+                    <h3>${car.year} ${car.Manufacturer} ${car.model} – <span class="price">$${car.price.toLocaleString()}</span></h3>
+                    <p>${car.transmission} Transmission | ${car.mileage.toLocaleString()} miles | ${car.mpg} MPG</p>
+                </div>`;
+                print(vehicleList, "div", html, "vehicle-loop");
+            });
+
+            // Print empty pagination element
+            print(vehicleList, "ul", null, "pagination");
+
+            // INITIAL PAGINATION PRINT
+            // Print prev button
+            print(document.querySelector('.vehicle-display .pagination'), "li", "<", "prev", "disabled");
+
+            // Print all numbers if 8 or fewer pages
+            if (totalPages <= 8) {
+                for(let i = 0; i < 8; i++) {
+                    print(document.querySelector('.vehicle-display .pagination'), "li", i);
+                }
+            }
+
+            if (totalPages > 8) {
+                
+                // Print pages 1-6
+                for(let i = 0; i < 6; i++) {
+                    print(document.querySelector('.vehicle-display .pagination'), "li", i + 1, "page");
+                }
+                // Print ellipsis
+                print(document.querySelector('.vehicle-display .pagination'), "li", "…", "disabled");
+                
+                // Print last page
+                print(document.querySelector('.vehicle-display .pagination'), "li", totalPages, "page");
+            }
+
+            // Print next button
+            print(document.querySelector('.vehicle-display .pagination'), "li", ">", "next");
+
+            // Add event listeners to numbers
+            document.querySelectorAll('.vehicle-display .pagination li').forEach(button => {
+                button.addEventListener('click', handlePagination);
             });
         }
     }
