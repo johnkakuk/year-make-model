@@ -283,6 +283,11 @@ function handleSelect(e) {
         print(yearDropdown, "option", year);
     });
 
+    // Run preloader once everything is loaded
+    const preloader = document.querySelector("#preloader");
+    preloader.addEventListener("transitionend", () => preloader.remove());
     document.querySelector("main").classList.remove("hidden");
-    document.querySelector("#preloader").classList.add("hidden");
+    preloader.classList.add("hidden");
+
+    // https://medium.com/@makeretech/javascript-tip-use-once-true-to-automatically-remove-event-listeners-5d3c6e0f7980
 })();
