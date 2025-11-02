@@ -283,6 +283,9 @@ function handleSelect(e) {
         print(yearDropdown, "option", year);
     });
 
+    // Select first option for now-populated dropdown
+    yearDropdown.selectedIndex = 0;
+
     // Run preloader once everything is loaded
     const preloader = document.querySelector("#preloader");
     preloader.addEventListener("transitionend", () => preloader.remove());
