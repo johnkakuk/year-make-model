@@ -283,4 +283,6 @@ function handleSelect(e) {
         print(yearDropdown, "option", year);
     });
 
+    document.querySelector("main").classList.remove("hidden");
+    document.querySelector("#preloader").classList.add("hidden");
 })();

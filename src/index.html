@@ -4,44 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New ES6/SCSS Project</title>
+    <style>
+        main.hidden {
+            display: none;
+        }
+
+        #preloader.hidden {
+            opacity: 0;
+        }
+
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.3s;
+            background: #fff;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 4px solid #ddd;
+            border-top-color: #111;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
-    <h1>Find Your Dream Vehicle</h1>
-    <p>Have you been dreaming about getting a new vehicle?<br>Well, you're in luck.</p>
-    <section class="vehicle-selector">
-        <div class="dropdown vehicles-year">
-            <h2>Year</h2>
-            <select name="Year">
-                <option disabled>Vehicle Year</option>
-                <option disabled>---</option>
-            </select>
-        </div>
-        <div class="dropdown dropdown-disabled vehicles-make">
-            <h2>Make</h2>
-            <select name="Make" disabled>
-                <option disabled>Vehicle Make</option>
-                <option disabled>---</option>
-            </select>
-        </div>
-        <div class="dropdown dropdown-disabled vehicles-model">
-            <h2>Model</h2>
-            <select name="Model" disabled>
-                <option disabled>Vehicle Model</option>
-                <option disabled>---</option>
-            </select>
-        </div>
-    </section>
-    <section class="vehicle-display">
-        <h2>Available Vehicles</h2>
-        <p>Nothing to show yet.</p>
-        <!-- <div class="vehicle-loop">
-            <div class="vehicle-image"></div>
-            <div class="vehicle-loop-details">
-                <h3>2020 Ford Taurus – <span class="price">$19,930</span></h3>
-                <p>Automatic Transmission | 4,330 miles | 50.4MPG</p>
+    <div id="preloader" aria-live="polite" aria-label="Loading...">
+        <div class="spinner" aria-hidden="true"></div>
+    </div>
+    <main class="hidden">
+        <h1>Find Your Dream Vehicle</h1>
+        <p>Have you been dreaming about getting a new vehicle?<br>Well, you're in luck.</p>
+        <section class="vehicle-selector">
+            <div class="dropdown vehicles-year">
+                <h2>Year</h2>
+                <select name="Year">
+                    <option disabled>Vehicle Year</option>
+                    <option disabled>---</option>
+                </select>
             </div>
-        </div> -->
-    </section>
+            <div class="dropdown dropdown-disabled vehicles-make">
+                <h2>Make</h2>
+                <select name="Make" disabled>
+                    <option disabled>Vehicle Make</option>
+                    <option disabled>---</option>
+                </select>
+            </div>
+            <div class="dropdown dropdown-disabled vehicles-model">
+                <h2>Model</h2>
+                <select name="Model" disabled>
+                    <option disabled>Vehicle Model</option>
+                    <option disabled>---</option>
+                </select>
+            </div>
+        </section>
+        <section class="vehicle-display">
+            <h2>Available Vehicles</h2>
+            <p>Nothing to show yet.</p>
+            <!-- <div class="vehicle-loop">
+                <div class="vehicle-image"></div>
+                <div class="vehicle-loop-details">
+                    <h3>2020 Ford Taurus – <span class="price">$19,930</span></h3>
+                    <p>Automatic Transmission | 4,330 miles | 50.4MPG</p>
+                </div>
+            </div> -->
+        </section>
+    </main>
     <!-- This needed to be commented out, no idea why. It was causing everything to run twice.
      Also no idea why it's now running AT ALL with no JS. I'm guessing WebPack is dynamically injecting it -->
     <!-- <script src="bundle.js"></script> -->
